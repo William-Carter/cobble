@@ -1,0 +1,3 @@
+ADMIN = 2
+TRUSTED = 1
+EVERYONE = 0
