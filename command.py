@@ -1,9 +1,10 @@
-import validations
-import permissions
-import bot
+import cobble.validations
+import cobble.permissions
+import cobble.bot
+import discord
 
 class Argument:
-    def __init__(self, name: str, description: str, validation: validations.Validation, keywordArg: bool = False) -> None:
+    def __init__(self, name: str, description: str, validation: cobble.validations.Validation, keywordArg: bool = False) -> None:
         """
         Parameters: 
             name - the name of the argument, to be used when addressing the user, such as in help menus
@@ -31,7 +32,7 @@ class FileArgument:
 
 
 class Command:
-    def __init__(self, bot: "bot.Bot", name: str, trigger: str, permissionLevel: int = 0) -> None:
+    def __init__(self, bot: "cobble.bot.Bot", name: str, trigger: str, description: str, permissionLevel: int = 0) -> None:
         """
         Parameters:
             bot - The bot object the command will belong to
@@ -42,6 +43,7 @@ class Command:
         self.bot = bot
         self.name = name
         self.trigger = trigger
+        self.description = description
         self.permissionLevel = permissionLevel
         self.arguments = []
         self.mandatoryArgs = []
@@ -66,16 +68,16 @@ class Command:
 
 
 class HelpCommand(Command):
-    def __init__(self, bot: "bot.Bot"):
+    def __init__(self, bot: "cobble.bot.Bot"):
         """
         Parameters:
             bot - The bot object the command will belong to
         """
-        super().__init__(bot, "Help", "help", permissions.ADMIN)
-        self.addArgument(Argument("command", "The command you wish to know more about", validations.IsCommand(self.bot.commands)))
+        super().__init__(bot, "Help", "help", "Get help with any commands", cobble.permissions.EVERYONE)
+        self.addArgument(Argument("command", "The command you wish to know more about", cobble.validations.IsCommand(self.bot.commands)))
 
 
-    def execute(self, argumentValues: dict) -> None:
+    def execute(self, messageObject: discord.message, argumentValues: dict) -> None:
         """
         Generate a help menu for a given command
         Parameters:
@@ -109,7 +111,7 @@ class HelpCommand(Command):
 
         for argument in commandToUse.arguments:
             finalOutput += "\n"
-            finalOutput += f"{argument.name} - {argument.description}"
+            finalOutput += f"{argument.name} - {argument.description}, {argument.validation.requirements}"
 
 
         return finalOutput
@@ -118,3 +120,27 @@ class HelpCommand(Command):
             
 
         
+class ListCommand(Command):
+    def __init__(self, bot: "cobble.bot.Bot"):
+        """
+        Parameters:
+            bot - The bot object the command will belong to
+        """
+        super().__init__(bot, "List", "list", "List every command available to you", cobble.permissions.EVERYONE)
+
+
+    def execute(self, messageObject: discord.message, argumentValues: dict) -> None:
+        """
+        Generate a help menu for a given command
+        Parameters:
+            argumentValues - a dictionary containing values for every argument provided, keyed to the argument name
+        """
+        output = "Available commands:"
+        for command in self.bot.commands:
+            if cobble.permissions.getUserPermissionLevel(messageObject.author, self.bot.admins) >= command.permissionLevel:
+                output += f"\n{command.name} - {command.description}"
+
+
+        output += "\n\nUse the help command for more information on any command"
+
+        return output

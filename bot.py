@@ -1,5 +1,6 @@
-import command
+import cobble.command
 import json
+import discord
 class Bot:
     def __init__(self, configFilePath: str, name: str, prefix: str = "."):
         self.loadConfig(configFilePath)
@@ -7,7 +8,7 @@ class Bot:
         self.prefix = prefix
         self.commands = []
 
-    def addCommand(self, command: command.Command):
+    def addCommand(self, command: cobble.command.Command):
         """
         Add a command to the bot
         Parameters:
@@ -27,7 +28,7 @@ class Bot:
                 self.admins = config["admins"]
 
 
-    def processCommand(self, fullString: str, senderPermissionLevel = 0) -> str:
+    def processCommand(self, messageObject: discord.message, fullString: str, senderPermissionLevel = 0) -> str:
         """
         Process a received command
         Parameters:
@@ -90,7 +91,7 @@ class Bot:
                 argumentValues[arg.name] = commandElements[index]
 
             else:
-                return f"{commandElements[index]} is not a valid value for {arg.name}!"
+                return f"{commandElements[index]} is not a valid value for {arg.name}! {arg.validation.requirements}!"
 
         mandatoryArgsOffset = len(processedCommand.mandatoryArgs)
         for i in range(len(commandElements)-mandatoryArgsOffset):
@@ -101,15 +102,19 @@ class Bot:
                 key = currentElement.split("=")[0]
                 if not key in [arg.name for arg in processedCommand.keywordArgs]:
                     return f"Unknown argument: {key}"
+                else:
+                    for arg in processedCommand.keywordArgs:
+                        if key == arg.name:
+                            identifiedArgument = arg
                 value = currentElement.split("=")[1]
-                if arg.validation.validate(value):
+                if identifiedArgument.validation.validate(value):
                     argumentValues[key] = value
                 else:
-                    return f"{value} is not a valid value for {key}!"
+                    return f"{value} is not a valid value for {key}! {identifiedArgument.validation.requirements}!"
 
 
 
-        response = processedCommand.execute(argumentValues)
+        response = processedCommand.execute(messageObject, argumentValues)
         return response
                         
 
