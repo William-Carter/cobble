@@ -28,7 +28,7 @@ class Bot:
                 self.admins = config["admins"]
 
 
-    def processCommand(self, messageObject: discord.message, fullString: str, senderPermissionLevel = 0) -> str:
+    async def processCommand(self, messageObject: discord.message, fullString: str, senderPermissionLevel = 0) -> str:
         """
         Process a received command
         Parameters:
@@ -75,16 +75,20 @@ class Bot:
 
         commandElements.pop(0)
 
+        if len(messageObject.attachments) < len(processedCommand.fileArguments):
+            return f"Not enough files supplied!\n{processedCommand.name} takes at least {len(processedCommand.fileArguments)}, but {len(messageObject.attachments)} were supplied!"
+        
+        if len(messageObject.attachments) > len(processedCommand.fileArguments):
+            return f"Too many files supplied!\n{processedCommand.name} takes up to {len(processedCommand.fileArguments)}, but {len(messageObject.attachments)} were supplied!"
+
 
         if len(commandElements) > len(processedCommand.arguments):
             return f"Too many arguments supplied!\n{processedCommand.name} takes up to {len(processedCommand.arguments)}, but {len(commandElements)} were supplied!"
-        
-
-        argumentValues = {}
-
 
         if len(commandElements) < len(processedCommand.mandatoryArgs):
             return f"Not enough arguments supplied!\n{processedCommand.name} takes at least {len(processedCommand.mandatoryArgs)}, but {len(commandElements)} were supplied!"
+        
+        argumentValues = {}
 
         for index, arg in enumerate(processedCommand.mandatoryArgs):
             if arg.validation.validate(commandElements[index]):
@@ -112,9 +116,16 @@ class Bot:
                 else:
                     return f"{value} is not a valid value for {key}! {identifiedArgument.validation.requirements}!"
 
+        attachedFiles = {}
+        for index, arg in enumerate(processedCommand.fileArguments):
+            if arg.fileType == messageObject.attachments[index].filename.split(".")[-1]:
+                attachedFiles[arg.name] = messageObject.attachments[index]
+
+            else:
+                return f"{messageObject.attachments[index].filename} is not a valid file for {arg.name}! Must be of filetype {arg.fileType}!"
 
 
-        response = processedCommand.execute(messageObject, argumentValues)
+        response = await processedCommand.execute(messageObject, argumentValues, attachedFiles)
         return response
                         
 

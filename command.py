@@ -20,13 +20,15 @@ class Argument:
 
 
 class FileArgument:
-    def __init__(self, name: str, fileType: str) -> None:
+    def __init__(self, name: str, description: str, fileType: str) -> None:
         """
         Parameters: 
             name - the name of the argument, to be used when addressing the user, such as in help menus
+            description - a description of the argument, to be used when addressing the user
             validation - rules to enforce
         """
         self.name = name
+        self.description = description
         self.fileType = fileType
 
 
@@ -46,6 +48,7 @@ class Command:
         self.description = description
         self.permissionLevel = permissionLevel
         self.arguments = []
+        self.fileArguments = []
         self.mandatoryArgs = []
         self.keywordArgs = []
 
@@ -63,6 +66,14 @@ class Command:
         else:
             self.keywordArgs.append(argument)
 
+    def addFileArgument(self, argument: FileArgument):
+        """
+        Add a file argument to the command
+        Parameters:
+            argument - A preconfigured FileArgument object
+        """
+        self.fileArguments.append(argument)
+
     
 
 
@@ -77,7 +88,7 @@ class HelpCommand(Command):
         self.addArgument(Argument("command", "The command you wish to know more about", cobble.validations.IsCommand(self.bot.commands)))
 
 
-    def execute(self, messageObject: discord.message, argumentValues: dict) -> None:
+    async def execute(self, messageObject: discord.message, argumentValues: dict, attachedFiles: dict) -> None:
         """
         Generate a help menu for a given command
         Parameters:
@@ -114,6 +125,12 @@ class HelpCommand(Command):
             finalOutput += f"{argument.name} - {argument.description}, {argument.validation.requirements}"
 
 
+        if len(commandToUse.fileArguments) > 0:
+            finalOutput += "\n\nFile Arguments:"
+            for fileArgument in commandToUse.fileArguments:
+                finalOutput += "\n"
+                finalOutput += f"{fileArgument.name} - {fileArgument.description}, Must be of type {fileArgument.fileType}"
+
         return finalOutput
             
 
@@ -129,7 +146,7 @@ class ListCommand(Command):
         super().__init__(bot, "List", "list", "List every command available to you", cobble.permissions.EVERYONE)
 
 
-    def execute(self, messageObject: discord.message, argumentValues: dict) -> None:
+    async def execute(self, messageObject: discord.message, argumentValues: dict, attachedFiles: dict) -> None:
         """
         Generate a help menu for a given command
         Parameters:
@@ -138,7 +155,7 @@ class ListCommand(Command):
         output = "Available commands:"
         for command in self.bot.commands:
             if cobble.permissions.getUserPermissionLevel(messageObject.author, self.bot.admins) >= command.permissionLevel:
-                output += f"\n{command.name} - {command.description}"
+                output += f"\n`{command.trigger}` - {command.description}"
 
 
         output += "\n\nUse the help command for more information on any command"
