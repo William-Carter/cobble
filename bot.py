@@ -101,20 +101,28 @@ class Bot:
         for i in range(len(commandElements)-mandatoryArgsOffset):
             currentElement = commandElements[i+mandatoryArgsOffset]
             if not "=" in currentElement:
-                return f"Argument with value '{currentElement}' needs to be a keyword argument!"
+                key = processedCommand.keywordArgs[i].name
+                value = currentElement
+                #return f"Argument with value '{currentElement}' needs to be a keyword argument!"
             else:
+                parts = currentElement.split("=")
+                if len(parts) != 2:
+                    return f"Mangled input '{currentElement}!'"
                 key = currentElement.split("=")[0]
-                if not key in [arg.name for arg in processedCommand.keywordArgs]:
-                    return f"Unknown argument: {key}"
-                else:
-                    for arg in processedCommand.keywordArgs:
-                        if key == arg.name:
-                            identifiedArgument = arg
                 value = currentElement.split("=")[1]
-                if identifiedArgument.validation.validate(value):
-                    argumentValues[key] = value
-                else:
-                    return f"{value} is not a valid value for {key}! {identifiedArgument.validation.requirements}!"
+
+            
+            if not key in [arg.name for arg in processedCommand.keywordArgs]:   
+                return f"Unknown argument: {key}"
+            else:
+                for arg in processedCommand.keywordArgs:
+                    if key == arg.name:
+                        identifiedArgument = arg
+            
+            if identifiedArgument.validation.validate(value):
+                argumentValues[key] = value
+            else:
+                return f"{value} is not a valid value for {key}! {identifiedArgument.validation.requirements}!"
 
         attachedFiles = {}
         for index, arg in enumerate(processedCommand.fileArguments):
