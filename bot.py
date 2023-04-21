@@ -83,7 +83,7 @@ class Bot:
 
 
         if len(commandElements) > len(processedCommand.arguments):
-            return f"Too many arguments supplied!\n{processedCommand.name} takes up to {len(processedCommand.arguments)}, but {len(commandElements)} were supplied!"
+            return f"Too many arguments supplied!\n{processedCommand.name} takes up to {len(processedCommand.arguments)}, but {len(commandElements)} were supplied!\nAre you trying to give a value with spaces in it? Wrap it in quotes to mark it as one argument."
 
         if len(commandElements) < len(processedCommand.mandatoryArgs):
             return f"Not enough arguments supplied!\n{processedCommand.name} takes at least {len(processedCommand.mandatoryArgs)}, but {len(commandElements)} were supplied!"
