@@ -76,17 +76,17 @@ class Bot:
         commandElements.pop(0)
 
         if len(messageObject.attachments) < len(processedCommand.fileArguments):
-            return f"Not enough files supplied!\n{processedCommand.name} takes at least {len(processedCommand.fileArguments)}, but {len(messageObject.attachments)} were supplied!"
+            return f"Not enough files supplied!\n{processedCommand.name} takes at least {len(processedCommand.fileArguments)}, but {len(messageObject.attachments)} were supplied!", None
         
         if len(messageObject.attachments) > len(processedCommand.fileArguments):
-            return f"Too many files supplied!\n{processedCommand.name} takes up to {len(processedCommand.fileArguments)}, but {len(messageObject.attachments)} were supplied!"
+            return f"Too many files supplied!\n{processedCommand.name} takes up to {len(processedCommand.fileArguments)}, but {len(messageObject.attachments)} were supplied!", None
 
 
         if len(commandElements) > len(processedCommand.arguments):
-            return f"Too many arguments supplied!\n{processedCommand.name} takes up to {len(processedCommand.arguments)}, but {len(commandElements)} were supplied!\nAre you trying to give a value with spaces in it? Wrap it in quotes to mark it as one argument."
+            return f"Too many arguments supplied!\n{processedCommand.name} takes up to {len(processedCommand.arguments)}, but {len(commandElements)} were supplied!\nAre you trying to give a value with spaces in it? Wrap it in quotes to mark it as one argument.", None
 
         if len(commandElements) < len(processedCommand.mandatoryArgs):
-            return f"Not enough arguments supplied!\n{processedCommand.name} takes at least {len(processedCommand.mandatoryArgs)}, but {len(commandElements)} were supplied!"
+            return f"Not enough arguments supplied!\n{processedCommand.name} takes at least {len(processedCommand.mandatoryArgs)}, but {len(commandElements)} were supplied!", None
         
         argumentValues = {}
 
@@ -95,7 +95,7 @@ class Bot:
                 argumentValues[arg.name] = commandElements[index]
 
             else:
-                return f"{commandElements[index]} is not a valid value for {arg.name}! {arg.validation.requirements}!"
+                return f"{commandElements[index]} is not a valid value for {arg.name}! {arg.validation.requirements}!", None
 
         mandatoryArgsOffset = len(processedCommand.mandatoryArgs)
         for i in range(len(commandElements)-mandatoryArgsOffset):
@@ -107,13 +107,13 @@ class Bot:
             else:
                 parts = currentElement.split("=")
                 if len(parts) != 2:
-                    return f"Mangled input '{currentElement}!'"
+                    return f"Mangled input '{currentElement}!'", None
                 key = currentElement.split("=")[0]
                 value = currentElement.split("=")[1]
 
             
             if not key in [arg.name for arg in processedCommand.keywordArgs]:   
-                return f"Unknown argument: {key}"
+                return f"Unknown argument: {key}", None
             else:
                 for arg in processedCommand.keywordArgs:
                     if key == arg.name:
@@ -122,7 +122,7 @@ class Bot:
             if identifiedArgument.validation.validate(value):
                 argumentValues[key] = value
             else:
-                return f"{value} is not a valid value for {key}! {identifiedArgument.validation.requirements}!"
+                return f"{value} is not a valid value for {key}! {identifiedArgument.validation.requirements}!", None
 
         attachedFiles = {}
         for index, arg in enumerate(processedCommand.fileArguments):
@@ -130,7 +130,7 @@ class Bot:
                 attachedFiles[arg.name] = messageObject.attachments[index]
 
             else:
-                return f"{messageObject.attachments[index].filename} is not a valid file for {arg.name}! Must be of filetype {arg.fileType}!"
+                return f"{messageObject.attachments[index].filename} is not a valid file for {arg.name}! Must be of filetype {arg.fileType}!", None
 
 
         response = await processedCommand.execute(messageObject, argumentValues, attachedFiles)
