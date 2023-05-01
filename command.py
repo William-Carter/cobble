@@ -74,7 +74,8 @@ class Command:
         """
         self.fileArguments.append(argument)
 
-    
+    def postCommand(self):
+        pass
 
 
 
@@ -144,6 +145,7 @@ class ListCommand(Command):
             bot - The bot object the command will belong to
         """
         super().__init__(bot, "List", "list", "List every command available to you", cobble.permissions.EVERYONE)
+        self.addArgument(Argument("permissionLevel", "The maximum permission level you want to see commands for", cobble.validations.IsInteger(), True))
 
 
     async def execute(self, messageObject: discord.message, argumentValues: dict, attachedFiles: dict) -> None:
@@ -152,9 +154,15 @@ class ListCommand(Command):
         Parameters:
             argumentValues - a dictionary containing values for every argument provided, keyed to the argument name
         """
+        if "permissionLevel" in argumentValues:
+            permissionLevel = int(argumentValues["permissionLevel"])
+
+        else:
+            permissionLevel = cobble.permissions.getUserPermissionLevel(messageObject.author, self.bot.admins)
+
         output = "Available commands:"
         for command in self.bot.commands:
-            if cobble.permissions.getUserPermissionLevel(messageObject.author, self.bot.admins) >= command.permissionLevel:
+            if  permissionLevel >= command.permissionLevel:
                 output += f"\n`{command.trigger}` - {command.description}"
 
 

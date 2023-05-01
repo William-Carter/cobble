@@ -134,7 +134,8 @@ class Bot:
 
 
         response = await processedCommand.execute(messageObject, argumentValues, attachedFiles)
-        return response
+    
+        return response, processedCommand.postCommand
                         
 
 
