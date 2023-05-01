@@ -59,7 +59,7 @@ class Bot:
             match character:
                 case '"':
                     inQuotes = not inQuotes
-                case " ":
+                case " " | "\n":
                     if not inQuotes:
                         if not element == "":
                             commandElements.append(element)

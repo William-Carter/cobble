@@ -86,7 +86,7 @@ class HelpCommand(Command):
             bot - The bot object the command will belong to
         """
         super().__init__(bot, "Help", "help", "Get help with any commands", cobble.permissions.EVERYONE)
-        self.addArgument(Argument("command", "The command you wish to know more about", cobble.validations.IsCommand(self.bot.commands)))
+        self.addArgument(Argument("command", "The command you wish to know more about", cobble.validations.IsCommand(self.bot.commands), True))
 
 
     async def execute(self, messageObject: discord.message, argumentValues: dict, attachedFiles: dict) -> None:
@@ -95,6 +95,8 @@ class HelpCommand(Command):
         Parameters:
             argumentValues - a dictionary containing values for every argument provided, keyed to the argument name
         """
+        if not "command" in argumentValues:
+            return await ListCommand.execute(self, messageObject, argumentValues, attachedFiles)
 
         for command in self.bot.commands:
             if argumentValues["command"] == command.trigger:
