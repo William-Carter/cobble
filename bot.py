@@ -45,10 +45,10 @@ class Bot:
                 processedCommand = command
 
         if processedCommand == None:
-            return f"Command \"{trigger}\" unknown!"
+            return f"Command \"{trigger}\" unknown!", None
         
         if senderPermissionLevel < processedCommand.permissionLevel:
-            return f"User is not authorised to use this command!"
+            return f"User is not authorised to use this command!", None
         
         # We want to not split on spaces that are inside quotation marks, so we'll keep track of whether we're currently inside a quote block
         inQuotes = False

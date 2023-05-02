@@ -150,3 +150,24 @@ class IsPositive(Validation):
             return False
         else:
             return (numericalValue >= 0)
+        
+
+
+class IsBool(Validation):
+    def __init__(self) -> None:
+        """
+        Validate that an input is a valid ISO8601 datestring
+        """
+        self.requirements = "Must be either true or false"
+
+    def validate(self, x: str) -> bool:
+        """
+        Determines whether a given input is a valid ISO8601 date string
+        Parameters:
+            x - the input to test
+        Returns:
+            valid - True if the input is a valid bool, False otherwise
+        """
+        if x in ["true", "false"]:
+            return True
+        return False
