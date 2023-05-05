@@ -88,6 +88,22 @@ class HelpCommand(Command):
         super().__init__(bot, "Help", "help", "Get help with any commands", cobble.permissions.EVERYONE)
         self.addArgument(Argument("command", "The command you wish to know more about", cobble.validations.IsCommand(self.bot.commands), True))
 
+    def generateUsage(self, bot, commandToUse):
+        usage = f"`{bot.prefix}{commandToUse.trigger}"
+        
+        for argument in commandToUse.arguments:
+            usage += " "
+            if not argument.keywordArg:
+                argText = argument.name
+            else:
+                argText = f"{argument.name}=[value]"
+
+            usage += argText
+
+        usage += "`"
+
+        return usage
+
 
     async def execute(self, messageObject: discord.message, argumentValues: dict, attachedFiles: dict) -> None:
         """
@@ -107,20 +123,10 @@ class HelpCommand(Command):
         finalOutput = ""
 
         finalOutput += f"Help for {commandToUse.name}:\n"
-        usage = f"`{self.bot.prefix}{commandToUse.trigger}"
         
-        for argument in commandToUse.arguments:
-            usage += " "
-            if not argument.keywordArg:
-                argText = argument.name
-            else:
-                argText = f"{argument.name}=[value]"
+        usage = self.generateUsage(self.bot, commandToUse)
 
-            usage += argText
-
-
-
-        finalOutput += usage+"`"
+        finalOutput += usage
 
 
         for argument in commandToUse.arguments:
