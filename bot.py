@@ -39,7 +39,7 @@ class Bot:
         
         # Ensure the command exists
         processedCommand = None
-        trigger = fullString.split(" ")[0]
+        trigger = fullString.split(" ")[0].lower()
         for command in self.commands:
             if trigger == command.trigger:
                 processedCommand = command
@@ -59,14 +59,15 @@ class Bot:
             match character:
                 case '"':
                     inQuotes = not inQuotes
+
                 case " ":
                     if not inQuotes:
                         if not element == "":
                             commandElements.append(element)
                         element = ""
-
                     else:
                         element += character
+
                 case _:
                     element += character
 
@@ -93,7 +94,11 @@ class Bot:
 
         for index, arg in enumerate(processedCommand.mandatoryArgs):
             if arg.validation.validate(commandElements[index]):
-                argumentValues[arg.name] = commandElements[index]
+                part = commandElements[index]
+                if not arg.caseSensitive:
+                    part = part.lower()
+                    
+                argumentValues[arg.name] = part
 
             else:
                 return f"{commandElements[index]} is not a valid value for {arg.name}! {arg.validation.requirements}!", None
@@ -104,7 +109,6 @@ class Bot:
             if not "=" in currentElement:
                 key = processedCommand.keywordArgs[i].name
                 value = currentElement
-                #return f"Argument with value '{currentElement}' needs to be a keyword argument!"
             else:
                 parts = currentElement.split("=")
                 if len(parts) != 2:
@@ -121,6 +125,8 @@ class Bot:
                         identifiedArgument = arg
             
             if identifiedArgument.validation.validate(value):
+                if not identifiedArgument.caseSensitive:
+                    value = value.lower()
                 argumentValues[key] = value
             else:
                 return f"{value} is not a valid value for {key}! {identifiedArgument.validation.requirements}!", None

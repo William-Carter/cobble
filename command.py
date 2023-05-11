@@ -4,7 +4,7 @@ import cobble.bot
 import discord
 
 class Argument:
-    def __init__(self, name: str, description: str, validation: cobble.validations.Validation, keywordArg: bool = False) -> None:
+    def __init__(self, name: str, description: str, validation: cobble.validations.Validation, keywordArg: bool = False, caseSensitive: bool = False) -> None:
         """
         Parameters: 
             name - the name of the argument, to be used when addressing the user, such as in help menus
@@ -17,6 +17,7 @@ class Argument:
         self.description = description
         self.validation = validation
         self.keywordArg = keywordArg
+        self.caseSensitive = caseSensitive
 
 
 class FileArgument:
