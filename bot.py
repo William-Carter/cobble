@@ -57,7 +57,7 @@ class Bot:
         element = ""
         for character in fullString:
             match character:
-                case '"':
+                case '"' | '“' | '”':
                     inQuotes = not inQuotes
 
                 case " ":
@@ -113,8 +113,8 @@ class Bot:
                 parts = currentElement.split("=")
                 if len(parts) != 2:
                     return f"Mangled input '{currentElement}!'", None
-                key = currentElement.split("=")[0]
-                value = currentElement.split("=")[1]
+                key = parts[0]
+                value = parts[1]
 
             
             if not key in [arg.name for arg in processedCommand.keywordArgs]:   
