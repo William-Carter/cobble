@@ -46,6 +46,10 @@ class Command:
         self.bot = bot
         self.name = name
         self.trigger = trigger
+        if type(self.trigger) == list:
+            self.mainTrigger = self.trigger[0]
+        else:
+            self.mainTrigger = self.trigger
         self.description = description
         self.permissionLevel = permissionLevel
         self.arguments = []
@@ -90,7 +94,7 @@ class HelpCommand(Command):
         self.addArgument(Argument("command", "The command you wish to know more about", cobble.validations.IsCommand(self.bot.commands), True))
 
     def generateUsage(self, bot, commandToUse):
-        usage = f"`{bot.prefix}{commandToUse.trigger}"
+        usage = f"`{bot.prefix}{commandToUse.mainTrigger}"
         
         for argument in commandToUse.arguments:
             usage += " "
@@ -172,7 +176,7 @@ class ListCommand(Command):
         output = "Available commands:"
         for command in self.bot.commands:
             if  permissionLevel >= command.permissionLevel:
-                output += f"\n`{command.trigger}` - {command.description}"
+                output += f"\n`{command.mainTrigger}` - {command.description}"
 
 
         output += "\n\nUse the help command for more information on any command"

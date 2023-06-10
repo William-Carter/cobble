@@ -41,8 +41,12 @@ class Bot:
         processedCommand = None
         trigger = fullString.split(" ")[0].lower()
         for command in self.commands:
-            if trigger == command.trigger:
-                processedCommand = command
+            if type(command.trigger) == str:
+                if trigger == command.trigger:
+                    processedCommand = command
+            else:
+                if trigger in command.trigger:
+                    processedCommand = command
 
         if processedCommand == None:
             return f"Command \"{trigger}\" unknown!", None
