@@ -54,7 +54,15 @@ class IsCommand(Validation):
         Returns:
             valid - True if the input is a valid string, False otherwise
         """
-        return (x in [command.trigger for command in self.commandList])
+        allCommands = []
+        for command in self.commandList:
+            if type(command.trigger) == list:
+                for alias in command.trigger:
+                    allCommands.append(alias)
+            else:
+                allCommands.append(command.trigger)
+
+        return (x in allCommands)
 
 
 class IsInteger(Validation):
