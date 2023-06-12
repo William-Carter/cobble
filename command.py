@@ -120,9 +120,14 @@ class HelpCommand(Command):
             return await ListCommand.execute(self, messageObject, argumentValues, attachedFiles)
 
         for command in self.bot.commands:
-            if argumentValues["command"] == command.trigger:
-                commandToUse = command
-                break
+            if type(command.trigger) == list:
+                if argumentValues["command"] in command.trigger:
+                    commandToUse = command
+                    break
+            else:
+                if argumentValues["command"] == command.trigger:
+                    commandToUse = command
+                    break
 
     
         finalOutput = ""
