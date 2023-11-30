@@ -1,20 +1,103 @@
 import discord
-ADMIN = 2
-TRUSTED = 1
-EVERYONE = 0
+import json
 
-def getUserPermissionLevel(user: discord.user, adminList: list):
+def getUserPermissions(userID: str, permissionsPath: str) -> list[str]:
     """
-    Gets the correct permission level for a user object
+    Returns a list of permissions a user has been granted
+
     Parameters:
-        user - the user object to get the permission level of
-        adminList - the list of administrator accounts
-    """
-    if  user.id in adminList:
-        permissionLevel = ADMIN
-    elif "Trusted" in [role.name for role in user.roles]:
-        permissionLevel = TRUSTED
-    else:
-        permissionLevel = EVERYONE
+        userID - the user's discord ID, as a string
 
-    return permissionLevel
+        permissionPath - the path to the file containing permissions
+    """
+    with open(permissionsPath, "r") as f:
+        perms = json.load(f)
+
+    if not userID in perms["users"]: # For users who aren't in the permissions file
+        return []
+    
+    return perms["users"][userID]
+
+
+def getPermissionList(permissionsPath: str) -> list[str]:
+    """
+    Returns a list of all permissions
+
+    Parameters:
+        permissionPath - the path to the file containing permissions
+    """
+
+    with open(permissionsPath, "r") as f:
+        perms = json.load(f)
+
+    return perms["permissions"].keys()
+
+
+def addUserPermission(userID: str, permission: str, permissionsPath: str):
+    """
+    Grant a permission to a user.
+
+    Does not check existence of permission before writing.
+
+    Parameters:
+        userID - the user's discord ID, as a string
+
+        permission - the permission
+
+        permissionPath - the path to the file containing permissions
+    """
+
+    with open(permissionsPath, "r") as f:
+        perms = json.load(f)
+
+    if not userID in perms["users"].keys():
+        perms["users"][userID] = []
+
+    if not permission in perms["users"][userID]:
+        perms["users"][userID].append(permission)
+
+        with open(permissionsPath, "w") as f:
+            json.dump(perms, f)
+
+def removeUserPermission(userID: str, permission: str, permissionsPath: str):
+    """
+    Revoke a permission from the user
+
+    Does not check existence of permission before writing.
+
+    Parameters:
+        userID - the user's discord ID, as a string
+
+        permission - the permission
+
+        permissionsPath - the path to the file containing permissions
+    """
+
+    with open(permissionsPath, "r") as f:
+        perms = json.load(f)
+
+    if not userID in perms["users"].keys():
+        return
+
+    perms["users"][userID].remove(permission)
+
+    with open(permissionsPath, "w") as f:
+        json.dump(perms, f)
+
+
+def getPermissionNames(permissionsPath: str) -> dict[str, dict[str, str]]:
+    """
+    Gets the full permission dictionary
+
+    Parameters:
+        permissionsPath - the path to the file containing permissions
+
+    Returns:
+        The full permissions dictionary
+    
+    """
+    
+    with open(permissionsPath, "r") as f:
+        perms = json.load(f)
+
+    return perms["permissions"]

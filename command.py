@@ -8,9 +8,11 @@ class Argument:
         """
         Parameters: 
             name - the name of the argument, to be used when addressing the user, such as in help menus
+
             description - a description of the argument, to be used when addressing the user
+
             validation - rules to enforce
-            mandatory - whether the argument is required for the command to run
+
             keywordArg - whether the argument should be passed as a keyword i.e. "argument=foo"
         """
         self.name = name
@@ -26,7 +28,7 @@ class FileArgument:
         Parameters: 
             name - the name of the argument, to be used when addressing the user, such as in help menus
             description - a description of the argument, to be used when addressing the user
-            validation - rules to enforce
+            fileType - the requested file type
         """
         self.name = name
         self.description = description
@@ -35,12 +37,15 @@ class FileArgument:
 
 
 class Command:
-    def __init__(self, bot: "cobble.bot.Bot", name: str, trigger: str, description: str, permissionLevel: int = 0) -> None:
+    def __init__(self, bot: 'cobble.bot.Bot', name: str, trigger: str, description: str, permission: str = "default") -> None:
         """
         Parameters:
             bot - The bot object the command will belong to
+
             name - the name of the command, to be used when addressing the user, such as in help menus
+
             trigger - the phrase used to activate the command, usually with a set prefix i.e "help"
+
             permissionLevel - the authorisation a user is required to have in order to use this command.
         """
         self.bot = bot
@@ -51,7 +56,7 @@ class Command:
         else:
             self.mainTrigger = self.trigger
         self.description = description
-        self.permissionLevel = permissionLevel
+        self.permission = permission
         self.arguments = []
         self.fileArguments = []
         self.mandatoryArgs = []
@@ -90,7 +95,7 @@ class HelpCommand(Command):
         Parameters:
             bot - The bot object the command will belong to
         """
-        super().__init__(bot, "Help", "help", "Get help with any commands", cobble.permissions.EVERYONE)
+        super().__init__(bot, "Help", "help", "Get help with any commands")
         self.addArgument(Argument("command", "The command you wish to know more about", cobble.validations.IsCommand(self.bot.commands), True))
 
     def generateUsage(self, bot, commandToUse):
@@ -101,7 +106,7 @@ class HelpCommand(Command):
             if not argument.keywordArg:
                 argText = argument.name
             else:
-                argText = f"{argument.name}=[value]"
+                argText = f"[{argument.name}=value]"
 
             usage += argText
 
@@ -150,6 +155,9 @@ class HelpCommand(Command):
                 finalOutput += "\n"
                 finalOutput += f"{fileArgument.name} - {fileArgument.description}, Must be of type {fileArgument.fileType}"
 
+
+        finalOutput += "\n\nArguments in [brackets] are optional."
+
         return finalOutput
             
 
@@ -162,8 +170,7 @@ class ListCommand(Command):
         Parameters:
             bot - The bot object the command will belong to
         """
-        super().__init__(bot, "List", "list", "List every command available to you", cobble.permissions.EVERYONE)
-        self.addArgument(Argument("permissionLevel", "The maximum permission level you want to see commands for", cobble.validations.IsInteger(), True))
+        super().__init__(bot, "List", "list", "List every command available to you")
 
 
     async def execute(self, messageObject: discord.message, argumentValues: dict, attachedFiles: dict) -> None:
@@ -172,15 +179,11 @@ class ListCommand(Command):
         Parameters:
             argumentValues - a dictionary containing values for every argument provided, keyed to the argument name
         """
-        if "permissionLevel" in argumentValues:
-            permissionLevel = int(argumentValues["permissionLevel"])
-
-        else:
-            permissionLevel = cobble.permissions.getUserPermissionLevel(messageObject.author, self.bot.admins)
-
+        perms = cobble.permissions.getUserPermissions(str(messageObject.author.id), self.bot.permissionsPath)
         output = "Available commands:"
         for command in self.bot.commands:
-            if  permissionLevel >= command.permissionLevel:
+
+            if command.permission == "default" or command.permission in perms or "admin" in perms:
                 output += f"\n`{command.mainTrigger}` - {command.description}"
 
 

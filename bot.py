@@ -2,11 +2,13 @@ import cobble.command
 import json
 import discord
 class Bot:
-    def __init__(self, configFilePath: str, name: str, prefix: str = "."):
+    def __init__(self, configFilePath: str, permissionsPath: str, name: str, prefix: str = ".", db = None):
         self.loadConfig(configFilePath)
         self.name = name
         self.prefix = prefix
+        self.permissionsPath = permissionsPath
         self.commands = []
+        self.db = db
 
     def addCommand(self, command: cobble.command.Command):
         """
@@ -25,10 +27,9 @@ class Bot:
             with open(configFilePath, "r") as f:
                 config = json.load(f)
                 self.token = config["token"]
-                self.admins = config["admins"]
 
 
-    async def processCommand(self, messageObject: discord.message, fullString: str, senderPermissionLevel = 0) -> str:
+    async def processCommand(self, messageObject: discord.message, fullString: str) -> str:
         """
         Process a received command
         Parameters:
@@ -51,8 +52,10 @@ class Bot:
         if processedCommand == None:
             return f"Command \"{trigger}\" unknown!", None
         
-        if senderPermissionLevel < processedCommand.permissionLevel:
-            return f"User is not authorised to use this command!", None
+        perms = cobble.permissions.getUserPermissions(str(messageObject.author.id), self.permissionsPath)
+        if not processedCommand.permission == "default" and not ("admin" in perms):
+            if not processedCommand.permission in perms:
+                return "User does not have permission to perform this action!", None
         
         # We want to not split on spaces that are inside quotation marks, so we'll keep track of whether we're currently inside a quote block
         inQuotes = False
@@ -61,7 +64,7 @@ class Bot:
         element = ""
         for character in fullString:
             match character:
-                case '"' | '“' | '”':
+                case '"' | '“' | '”': # Phones use these stupid characters sometimes
                     inQuotes = not inQuotes
 
                 case " ":
