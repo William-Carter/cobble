@@ -37,7 +37,7 @@ class FileArgument:
 
 
 class Command:
-    def __init__(self, bot: 'cobble.bot.Bot', name: str, trigger: str, description: str, permission: str = "default") -> None:
+    def __init__(self, bot: 'cobble.bot.Bot', name: str, trigger: str, description: str, permission: str = "default", hidden: bool = False) -> None:
         """
         Parameters:
             bot - The bot object the command will belong to
@@ -57,6 +57,7 @@ class Command:
             self.mainTrigger = self.trigger
         self.description = description
         self.permission = permission
+        self.hidden = hidden
         self.arguments = []
         self.fileArguments = []
         self.mandatoryArgs = []
@@ -184,7 +185,8 @@ class ListCommand(Command):
         for command in self.bot.commands:
 
             if command.permission == "default" or command.permission in perms or "admin" in perms:
-                output += f"\n`{command.mainTrigger}` - {command.description}"
+                if not command.hidden:
+                    output += f"\n`{command.mainTrigger}` - {command.description}"
 
 
         output += "\n\nUse the help command for more information on any command"
